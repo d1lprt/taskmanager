@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Task Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #f5f0e8;
+      min-height: 100vh;
+      font-family: 'Space Mono', monospace;
+      padding: 40px 20px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 680px;
+      background: #faf7f2;
+      border: 1px solid #d4cfc6;
+      box-shadow: 6px 6px 0px #1a1a1a;
+    }
+
+    /* ── Header ── */
+    .header { padding: 36px 36px 24px; }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-bottom: 20px;
+    }
+
+    .eyebrow {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: #c0392b;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+    }
+
+    h1.title {
+      font-family: 'Playfair Display', serif;
+      font-size: 62px;
+      font-weight: 900;
+      line-height: 0.9;
+      color: #1a1a1a;
+      letter-spacing: -1px;
+    }
+
+    .big-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 80px;
+      font-weight: 900;
+      line-height: 1;
+      color: #1a1a1a;
+      text-align: right;
+    }
+
+    .big-num-label {
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: #999;
+      line-height: 1.5;
+      text-align: right;
+    }
+
+    /* ── Progress ── */
+    .progress-bar {
+      height: 3px;
+      background: #e8e4dc;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #c0392b;
+      transition: width 0.4s cubic-bezier(0.34, 1.1, 0.64, 1);
+      width: 0%;
+    }
+
+    /* ── Stats row ── */
+    .stats-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .stat-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #1a1a1a;
+      color: #f5f0e8;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      padding: 5px 12px;
+    }
+
+    .stat-pill .accent { color: #c0392b; font-weight: 700; }
+
+    .stat-pill.done-pill {
+      background: transparent;
+      color: #999;
+      border: 1px solid #d4cfc6;
+    }
+
+    .clear-btn {
+      background: none;
+      border: 1px solid #d4cfc6;
+      color: #999;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      padding: 6px 14px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all 0.15s;
+    }
+    .clear-btn:hover { border-color: #c0392b; color: #c0392b; }
+
+    /* ── Dividers ── */
+    .divider-line { border: none; border-top: 3px solid #1a1a1a; }
+    .divider-thin { border: none; border-top: 1px solid #d4cfc6; }
+
+    /* ── Input row ── */
+    .input-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 20px 36px;
+    }
+
+    .input-icon {
+      font-family: 'Playfair Display', serif;
+      font-size: 28px;
+      color: #c0392b;
+      line-height: 1;
+      user-select: none;
+    }
+
+    .add-input {
+      font-family: 'Space Mono', monospace;
+      font-size: 14px;
+      border: none;
+      border-bottom: 2px solid #1a1a1a;
+      background: transparent;
+      color: #1a1a1a;
+      flex: 1;
+      outline: none;
+      padding: 8px 0;
+      transition: border-color 0.2s;
+    }
+    .add-input::placeholder { color: #bbb; }
+    .add-input:focus { border-color: #c0392b; }
+
+    .add-btn {
+      background: #1a1a1a;
+      border: none;
+      color: #f5f0e8;
+      font-family: 'Space Mono', monospace;
+      font-size: 12px;
+      letter-spacing: 1px;
+      padding: 10px 20px;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: background 0.15s;
+    }
+    .add-btn:hover { background: #c0392b; }
+
+    /* ── Filters ── */
+    .filters-row {
+      display: flex;
+      align-items: center;
+      padding: 0 22px;
+    }
+
+    .filter-btn {
+      background: none;
+      border: none;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      padding: 6px 14px;
+      color: #999;
+      text-transform: uppercase;
+      transition: all 0.15s;
+      border-bottom: 2px solid transparent;
+    }
+    .filter-btn:hover { color: #1a1a1a; }
+    .filter-btn.active { color: #1a1a1a; border-bottom: 2px solid #c0392b; }
+
+    .filter-count {
+      margin-left: auto;
+      font-size: 10px;
+      letter-spacing: 1px;
+      color: #bbb;
+      padding-right: 14px;
+    }
+
+    /* ── Task list ── */
+    #task-list {
+      padding: 0 36px;
+      min-height: 120px;
+    }
+
+    .task-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 18px 0;
+      border-bottom: 1px solid #d4cfc6;
+      animation: fadeIn 0.35s ease;
+      transition: background 0.15s;
+    }
+    .task-row:last-child { border-bottom: none; }
+    .task-row:hover { background: rgba(0,0,0,0.02); }
+    .task-row.new-task { animation: slideIn 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #1a1a1a;
+      cursor: pointer;
+      flex-shrink: 0;
+      margin-top: 3px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, border-color 0.15s;
+      background: transparent;
+    }
+    .checkbox.checked { background: #1a1a1a; border-color: #1a1a1a; }
+    .checkbox:hover { border-color: #c0392b; }
+    .checkbox.checked:hover { background: #c0392b; border-color: #c0392b; }
+
+    .task-text {
+      font-size: 13.5px;
+      line-height: 1.6;
+      color: #1a1a1a;
+      flex: 1;
+      cursor: pointer;
+      word-break: break-word;
+      transition: color 0.2s;
+    }
+    .task-text.done {
+      color: #aaa;
+      text-decoration: line-through;
+      text-decoration-color: #c0392b;
+    }
+
+    .task-actions {
+      display: flex;
+      gap: 8px;
+      opacity: 0;
+      transition: opacity 0.15s;
+      flex-shrink: 0;
+    }
+    .task-row:hover .task-actions { opacity: 1; }
+
+    .action-btn {
+      background: none;
+      border: 1px solid #d4cfc6;
+      cursor: pointer;
+      padding: 4px 10px;
+      font-family: 'Space Mono', monospace;
+      font-size: 10px;
+      color: #666;
+      letter-spacing: 0.5px;
+      transition: all 0.15s;
+    }
+    .action-btn:hover { border-color: #1a1a1a; color: #1a1a1a; }
+    .action-btn.delete:hover { border-color: #c0392b; color: #c0392b; }
+
+    .edit-input {
+      font-family: 'Space Mono', monospace;
+      font-size: 13.5px;
+      border: none;
+      border-bottom: 2px solid #c0392b;
+      background: transparent;
+      color: #1a1a1a;
+      flex: 1;
+      outline: none;
+      padding: 2px 0;
+      line-height: 1.6;
+    }
+
+    /* ── Empty state ── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #ccc;
+      font-size: 12px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 14px 36px;
+      font-size: 9px;
+      letter-spacing: 1px;
+      color: #ccc;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-top">
+      <div>
+        <div class="eyebrow">Productivity System</div>
+        <h1 class="title">TASK<br>MANAGER</h1>
+      </div>
+      <div>
+        <div class="big-num" id="total-count">3</div>
+        <div class="big-num-label">TOTAL<br>TASKS</div>
+      </div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+
+    <div class="stats-row">
+      <span class="stat-pill"><span class="accent" id="active-count">2</span>&nbsp;ACTIVE</span>
+      <span class="stat-pill done-pill" id="done-pill">1 DONE</span>
+      <button class="clear-btn" id="clear-btn" onclick="clearCompleted()" style="display:none">CLEAR DONE</button>
+    </div>
+  </div>
+
+  <hr class="divider-line" />
+
+  <!-- Input -->
+  <div class="input-row">
+    <span class="input-icon">+</span>
+    <input id="add-input" class="add-input" placeholder="Add a new task…"
+      onkeydown="if(event.key==='Enter') addTask()" />
+    <button class="add-btn" onclick="addTask()">ADD</button>
+  </div>
+
+  <hr class="divider-thin" />
+
+  <!-- Filters -->
+  <div class="filters-row">
+    <button class="filter-btn active" onclick="setFilter('ALL', this)">ALL</button>
+    <button class="filter-btn" onclick="setFilter('ACTIVE', this)">ACTIVE</button>
+    <button class="filter-btn" onclick="setFilter('COMPLETED', this)">COMPLETED</button>
+    <div class="filter-count" id="filter-count">3 ITEMS</div>
+  </div>
+
+  <hr class="divider-thin" />
+
+  <!-- Task List -->
+  <div id="task-list"></div>
+
+  <hr class="divider-thin" />
+
+  <!-- Footer -->
+  <div class="footer">DBL-CLICK TO EDIT · ENTER TO SAVE · ESC TO CANCEL</div>
+</div>
+
+<script>
+  let tasks = [
+    { id: 1, text: "Design the new product landing page", completed: false },
+    { id: 2, text: "Review pull requests from the team", completed: true },
+    { id: 3, text: "Write Q2 performance report", completed: false },
+  ];
+
+  let nextId = 4;
+  let currentFilter = "ALL";
+  let editingId = null;
+
+  function getFiltered() {
+    if (currentFilter === "ALL") return tasks;
+    if (currentFilter === "ACTIVE") return tasks.filter(t => !t.completed);
+    return tasks.filter(t => t.completed);
+  }
+
+  function updateStats() {
+    const total = tasks.length;
+    const completed = tasks.filter(t => t.completed).length;
+    const active = total - completed;
+
+    document.getElementById("total-count").textContent = total;
+    document.getElementById("active-count").textContent = active;
+    document.getElementById("done-pill").textContent = completed + " DONE";
+    document.getElementById("progress-fill").style.width =
+      total ? ((completed / total) * 100) + "%" : "0%";
+    document.getElementById("clear-btn").style.display = completed > 0 ? "inline-block" : "none";
+
+    const filtered = getFiltered();
+    document.getElementById("filter-count").textContent =
+      filtered.length + (filtered.length === 1 ? " ITEM" : " ITEMS");
+  }
+
+  function render(newTaskId = null) {
+    const list = document.getElementById("task-list");
+    const filtered = getFiltered();
+    list.innerHTML = "";
+
+    if (filtered.length === 0) {
+      const msg = currentFilter === "COMPLETED" ? "No completed tasks yet."
+                : currentFilter === "ACTIVE"    ? "No active tasks. Well done!"
+                :                                 "No tasks. Add one above!";
+      list.innerHTML = `<div class="empty-state">${msg}</div>`;
+      updateStats();
+      return;
+    }
+
+    filtered.forEach(task => {
+      const row = document.createElement("div");
+      row.className = "task-row" + (task.id === newTaskId ? " new-task" : "");
+      row.dataset.id = task.id;
+
+      // Checkbox
+      const cb = document.createElement("div");
+      cb.className = "checkbox" + (task.completed ? " checked" : "");
+      cb.innerHTML = task.completed
+        ? `<svg width="10" height="8" viewBox="0 0 10 8" fill="none">
+             <path d="M1 4L3.5 6.5L9 1" stroke="#f5f0e8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+           </svg>`
+        : "";
+      cb.onclick = () => toggleTask(task.id);
+      row.appendChild(cb);
+
+      if (editingId === task.id) {
+        // Edit input
+        const inp = document.createElement("input");
+        inp.className = "edit-input";
+        inp.value = task.text;
+        inp.onkeydown = e => {
+          if (e.key === "Enter") saveEdit(task.id, inp.value);
+          if (e.key === "Escape") { editingId = null; render(); }
+        };
+        inp.onblur = () => saveEdit(task.id, inp.value);
+        row.appendChild(inp);
+        setTimeout(() => inp.focus(), 10);
+      } else {
+        // Text
+        const span = document.createElement("span");
+        span.className = "task-text" + (task.completed ? " done" : "");
+        span.textContent = task.text;
+        if (!task.completed) span.ondblclick = () => startEdit(task.id);
+        row.appendChild(span);
+
+        // Actions
+        const actions = document.createElement("div");
+        actions.className = "task-actions";
+        if (!task.completed) {
+          const editBtn = document.createElement("button");
+          editBtn.className = "action-btn";
+          editBtn.textContent = "EDIT";
+          editBtn.onclick = () => startEdit(task.id);
+          actions.appendChild(editBtn);
+        }
+        const delBtn = document.createElement("button");
+        delBtn.className = "action-btn delete";
+        delBtn.textContent = "DEL";
+        delBtn.onclick = () => deleteTask(task.id);
+        actions.appendChild(delBtn);
+        row.appendChild(actions);
+      }
+
+      list.appendChild(row);
+    });
+
+    updateStats();
+  }
+
+  function addTask() {
+    const input = document.getElementById("add-input");
+    const text = input.value.trim();
+    if (!text) return;
+    const id = nextId++;
+    tasks.unshift({ id, text, completed: false });
+    input.value = "";
+    render(id);
+    input.focus();
+  }
+
+  function deleteTask(id) {
+    tasks = tasks.filter(t => t.id !== id);
+    render();
+  }
+
+  function toggleTask(id) {
+    tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+    render();
+  }
+
+  function startEdit(id) {
+    editingId = id;
+    render();
+  }
+
+  function saveEdit(id, value) {
+    const text = value.trim();
+    if (!text) { editingId = null; render(); return; }
+    tasks = tasks.map(t => t.id === id ? { ...t, text } : t);
+    editingId = null;
+    render();
+  }
+
+  function clearCompleted() {
+    tasks = tasks.filter(t => !t.completed);
+    render();
+  }
+
+  function setFilter(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    render();
+  }
+
+  // Initial render
+  render();
+</script>
+</body>
+</html>
